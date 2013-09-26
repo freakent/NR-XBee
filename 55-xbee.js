@@ -193,7 +193,7 @@ var xbeePool = function() {
 							        }
 
 											obj.xbee.on("initialized", function(params) {
-        								util.log(util.format("XBee initialised in pool -> %j", params);
+        								util.log(util.format("XBee initialised in pool -> %j", params));
             						obj.xbee.discover();            
 											});
 

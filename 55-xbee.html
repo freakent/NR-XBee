@@ -1,0 +1,113 @@
+<!--
+  Copyright 2013 Freak Enterprises
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="xbee in">
+    <div class="form-row node-input-serial">
+        <label for="node-input-serial"><i class="icon-bullhorn"></i> Serial Port</label>
+        <input type="text" id="node-input-serial">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-tips">
+    	Tip: the XBee address of the message source is available in <b>msg.source</b>.<br>
+    	XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437. 
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="xbee in">
+	<p>Provides an inbound connection to an XBEE network through an XBee module connected to this computer's serial port. </p>
+	<p>The address of the XBee module from which the message was originally sent is available in  <b>msg.source</b>.
+	Not sure yet what happens if it receives an IO packet!!
+	</p>
+	<p>XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437. </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('xbee in',{
+        category: 'input',
+        defaults: {
+			name: {name:""},
+            serial: {type:"serial-port",required:true}
+        },
+        color:"#088247",
+        inputs:0,
+        outputs:1,
+        icon: "serial.png",
+        label: function() {
+            var serialNode = RED.nodes.node(this.serial);
+            return this.name||(serialNode?serialNode.label():"serial");
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        }
+    });
+</script>
+
+
+<script type="text/x-red" data-template-name="xbee out">
+    <div class="form-row node-input-serial">
+        <label for="node-input-serial"><i class="icon-bullhorn"></i> Serial Port</label>
+        <input type="text" id="node-input-serial">
+    </div>
+    <div class="form-row">
+        <label for="node-input-destination"><i class="icon-road"></i> Destination</label>
+        <input type="text" id="node-input-destination" placeholder="XBee Address e.g. 0013a200408b9437">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-tips">
+    	Tip: leave destination blank and <b>msg.payload</b> will be sent to the XBee with 
+    	the address in <b>msg.destination</b>.<br>
+    	XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437. 
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="xbee out">
+	<p>Provides an outbound connection to an XBEE network through an XBee module connected to this computer's serial port. </p>
+	<p>The address of the XBee module to send the message to can either be set in this node's configuration or passed as a parameter 
+	in <b>msg.destination</b>. Only the <b>msg.payload</b> is sent to the destination XBee.</p>
+	<p>XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437. </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('xbee out',{
+        category: 'output',
+        defaults: {
+			name: {name:""},
+            serial: {type:"serial-port",required:true},
+            destination: {name:""}
+        },
+        color:"#088247",
+        inputs:1,
+        outputs:0,
+        icon: "serial.png",
+        align: "right",
+        label: function() {
+            var serialNode = RED.nodes.node(this.serial);
+            return this.name||(this.destination?"XBee "+this.destination:(serialNode?serialNode.label():"serial"));
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        }
+    });
+
+</script>

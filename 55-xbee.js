@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Freak Ent.
+ * Copyright 2013 Freak Enterprises
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,27 +12,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * NR-XBee - Node-RED module to support use of XBee wireless modules
+ *
+ * Highly inspired by Node-RED's own serial and mqtt modules. 
+ * XBee interfacing is performed using the excellent svd-xbee node.js module and inherits 
+ * the same dependencies on API Mode etc (see https://github.com/jouz/svd-xbee for details).
+ *
  **/
 
-// XBee Node-RED node file
-console.log("********** Loading XBee Node ************");
-
-
-// Require main module
 var util = require("util");
 var events = require("events");
 var RED = require("../../red/red");
 var XBee = require('svd-xbee').XBee;
 
-// The main node definition - most things happen in here
+/**
+ * XBeeInNode - Provides an inbound connection to an XBEE network through an XBee module 
+ *              connected to the computer's serial port. 
+ *
+ * The address of the XBee module from which the message was originally sent is available 
+ * in  msg.source.
+ *	
+ * XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437.
+ **/
 function XBeeInNode(n) {      
-    // Create a RED node
     RED.nodes.createNode(this,n);
     var node = this;
     this.serial = n.serial;
     this.serialConfig = RED.nodes.getNode(this.serial);
-    
-//    util.log(util.format("Serial Config: %j", this.serialConfig));
     
     if (node.serialConfig) {
 
@@ -42,11 +49,10 @@ function XBeeInNode(n) {
             node.xbee = xbeePool.get(
               node.serialConfig.serialport,
             	node.serialConfig.serialbaud
-            ).xbee;
+            ).xbee; // ToDo: I'm not convinced that using a wrapper object is desirable or necessary
             
         } catch(err) {
-            // ToDo : Retry every 10 seconds 
-        		node.log(util.format("Failed to initialise XBee on %s", this.serialConfig.serialport));
+        		node.log(util.format("Failed to get XBee on %s", this.serialConfig.serialport));
             this.error(err);
             return;
         }
@@ -65,7 +71,6 @@ function XBeeInNode(n) {
   				});
 
 				});
-
             
     } else {
         node.error("missing serial config");
@@ -81,9 +86,18 @@ XBeeInNode.prototype.close = function() {
 }
 
 
-// The main node definition - most things happen in here
+/**
+ * XBeeOutNode - 	Provides an outbound connection to an XBEE network through an 
+ *                XBee module connected to the computer's serial port. 
+ *
+ * The address of the XBee module to send the message to can either be set in the 
+ * node's web UI configuration or passed as a parameter in msg.destination. 
+ * Only the msg.payload is sent to the destination XBee.
+ *
+ * XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437.
+ *
+ **/
 function XBeeOutNode(n) {      
-    // Create a RED node
     RED.nodes.createNode(this,n);
     var node = this;
     this.destination = n.destination;
@@ -98,11 +112,10 @@ function XBeeOutNode(n) {
             node.xbee = xbeePool.get(
               node.serialConfig.serialport,
             	node.serialConfig.serialbaud
-            ).xbee;
+            ).xbee; // ToDo: I'm not convinced that using a wrapper object is desirable or necessary
             
         } catch(err) {
-            // ToDo : Retry every 10 seconds 
-        		node.log(util.format("Failed to initialise XBee on %s", this.serialConfig.serialport));
+        		node.log(util.format("Failed to get XBee on %s", this.serialConfig.serialport));
             this.error(err);
             return;
         }
@@ -114,7 +127,7 @@ function XBeeOutNode(n) {
           	xnode = node.xbee.addNode(node.xbee.tools.hexStr2bArr(addr));
           	xnode.send(msg.payload.replace("\\n", String.fromCharCode(10)).replace("\\r", String.fromCharCode(13)));
           } else {
-            node.error("missing destination address");
+            node.error("missing XBee destination address");
           }
         });
 
@@ -131,14 +144,19 @@ XBeeOutNode.prototype.close = function() {
     util.log("XBeeOutNode closed");
 }
 
-// Register the node by name. This must be called before overriding any of the
-// Node functions.
+// Register the nodes by name. This must be called before overriding any of the Node functions.
 console.log("Registering xbee in node");
 RED.nodes.registerType("xbee in", XBeeInNode);
 
 RED.nodes.registerType("xbee out", XBeeOutNode);
 
 
+/**
+ * xbeePool - Provides a sharable pool of XBee connections which are used by both 
+ *            the inbound and outbound nodes. 
+ *
+ * ToDo: There's a lot of stuff in here that can probably be pulled out once I'm sure it's not needed
+ **/
 var xbeePool = function() {
     var pool = {};
     return {
@@ -146,7 +164,7 @@ var xbeePool = function() {
             var id = port;
             if (!pool[id]) {
                 pool[id] = function() {
-                    var obj = {
+                    var obj = { // ToDo: I'm not convinced that using a wrapper object is desirable or necessary
                         _emitter: new events.EventEmitter(),
                         xbee: null,
                         serial: null, //ToDo : Remove
@@ -165,10 +183,7 @@ var xbeePool = function() {
             							baudrate: baud
             						});
             						
-            						//util.log("Calling init");
         								obj.xbee.init();
-    								    //util.log("Called init");
-
             
 						        	} catch(err) {
 						            // ToDo : Retry every 10 seconds 
@@ -178,9 +193,7 @@ var xbeePool = function() {
 							        }
 
 											obj.xbee.on("initialized", function(params) {
-				    						//util.log("*****************************");
-        								util.log("XBee in pool initialised.");
-				    						util.log(util.inspect(params));
+        								util.log(util.format("XBee initialised in pool -> %j", params);
             						obj.xbee.discover();            
 											});
 

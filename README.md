@@ -9,7 +9,8 @@ API Mode etc (see https://github.com/jouz/svd-xbee for details).
 
 Pre-requesites
 --------------
-*) Node-RED's serial module must be enabled
-*) Install svd-xbee from github 
-	$ npm install git+https://github.com/jouz/svd-xbee.git 
+1. Node-RED's serial module must be enabled
+1. Install svd-xbee from github 
+
+    $ npm install git+https://github.com/jouz/svd-xbee.git 
 

@@ -66,7 +66,7 @@ function XBeeInNode(n) {
   				});
   
   				xnode.on("io", function(sample) {
-    				node.log(util.format("IO from %s -> %s", node.remote64.hex, util.inspect(sample))); 
+    				node.log(util.format("IO from %s -> %s", xnode.remote64.hex, util.inspect(sample))); 
 						node.send({ "payload": sample, "source": xnode.remote64.hex }); 
   				});
 

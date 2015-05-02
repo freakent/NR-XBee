@@ -35,7 +35,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="xbee in">
-	<p>Provides an inbound connection to an XBEE network through an XBee module connected to this computer's serial port. </p>
+	<p>Provides an inbound connection to an XBEE network through an XBee module connected to this computer&quot;s serial port. </p>
 	<p>The address of the XBee module from which the message was originally sent is available in  <b>msg.source</b>.
 	Not sure yet what happens if it receives an IO packet!!
 	</p>
@@ -86,8 +86,8 @@
 </script>
 
 <script type="text/x-red" data-help-name="xbee out">
-	<p>Provides an outbound connection to an XBEE network through an XBee module connected to this computer's serial port. </p>
-	<p>The address of the XBee module to send the message to can either be set in this node's configuration or passed as a parameter 
+	<p>Provides an outbound connection to an XBEE network through an XBee module connected to this computer&quot;s serial port. </p>
+	<p>The address of the XBee module to send the message to can either be set in this node&quot;s configuration or passed as a parameter 
 	in <b>msg.destination</b>. Only the <b>msg.payload</b> is sent to the destination XBee.</p>
 	<p>XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437. </p>
 </script>
@@ -99,6 +99,74 @@
 			name: {name:""},
             serial: {type:"serial-port",required:true},
             destination: {name:""}
+        },
+        color:"#088247",
+        inputs:1,
+        outputs:0,
+        icon: "serial.png",
+        align: "right",
+        label: function() {
+            var serialNode = RED.nodes.node(this.serial);
+            return this.name||(this.destination?"XBee "+this.destination:(serialNode?serialNode.label():"serial"));
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        }
+    });
+
+</script>
+
+<script type="text/x-red" data-template-name="xbee dio out">
+    <div class="form-row node-input-serial">
+        <label for="node-input-serial"><i class="icon-bullhorn"></i> Serial Port</label>
+        <input type="text" id="node-input-serial">
+    </div>
+    <div class="form-row">
+        <label for="node-input-destination"><i class="icon-road"></i> Destination</label>
+        <input type="text" id="node-input-destination" placeholder="XBee Address e.g. 0013a200408b9437">
+    </div>
+    <div class="form-row">
+        <label for="node-input-dio"><i class="icon-road"></i> XBee IO Pin</label>
+        <input type="text" id="node-input-dio" placeholder="XBee IO pin e.g. DIO4">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pinstate"><i class="icon-road"></i> XBee IO Pin State</label>
+        <input type="text" id="node-input-pinstate" placeholder="XBee IO pin state e.g. DIGITAL_OUTPUT_LOW or DIGITAL_OUTPUT_HIGH">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-tips">
+        Tip: leave destination blank and the XBee with 
+        the address in <b>msg.destination</b> will be used.<br/>
+        XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437.<br/>
+        Leave XBee IO Pin blank and specify the XBee DIO you want to update in <b>msg.dio</b> e.g. DIO4.<br/>
+        Leave XBee IO Pin State blank and provide it in the <b>msg.state</b> parameter.
+        Valid states are DIGITAL_OUTPUT_LOW, DIGITAL_OUTPUT_HIGH.
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="xbee dio out">
+    <p>Provides the ability to set a Digital IO pin state via a Controller XBee module connected to this computer&quot;s serial port. </p>
+    <p>The address of the XBee module to update can either be set in this nodes configuration or passed as a parameter 
+    in <b>msg.destination</b>. </p>
+    <p>XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437. </p>
+    <p>Leave XBee IO Pin blank and pass as a parameter in <b>msg.dio</b> e.g. DIO4.</p>
+    <p>Leave XBee IO Pin State blank and pass the state as a string property of the msg. i.e. <b>msg.state</b>.
+        Valid states are DIGITAL_OUTPUT_LOW, DIGITAL_OUTPUT_HIGH.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('xbee dio out',{
+        category: 'output',
+        defaults: {
+            name: {name:""},
+            serial: {type:"serial-port",required:true},
+            destination: {name:""},
+            dio: {name:""},
+            pinstate: {name:"DIGITAL_OUTPUT_HIGH"} 
         },
         color:"#088247",
         inputs:1,

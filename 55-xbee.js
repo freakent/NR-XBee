@@ -21,10 +21,10 @@
  *
  **/
 
-var util = require("util");
-var events = require("events");
-var RED = require("../../red/red");
-var XBee = require('svd-xbee').XBee;
+ var util = require("util");
+ var events = require("events");
+ var RED = require("../../red/red");
+ var XBee = require('svd-xbee').XBee;
 
 /**
  * XBeeInNode - Provides an inbound connection to an XBEE network through an XBee module 
@@ -35,7 +35,7 @@ var XBee = require('svd-xbee').XBee;
  *	
  * XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437.
  **/
-function XBeeInNode(n) {      
+ function XBeeInNode(n) {      
     RED.nodes.createNode(this,n);
     var node = this;
     this.serial = n.serial;
@@ -44,37 +44,37 @@ function XBeeInNode(n) {
     if (node.serialConfig) {
 
         try {
-		        node.log(util.format("Get XBee on %s:%s from pool...", this.serialConfig.serialport, this.serialConfig.serialbaud));
-    
-            node.xbee = xbeePool.get(
+          node.log(util.format("Get XBee on %s:%s from pool...", this.serialConfig.serialport, this.serialConfig.serialbaud));
+
+          node.xbee = xbeePool.get(
               node.serialConfig.serialport,
-            	node.serialConfig.serialbaud
+              node.serialConfig.serialbaud
             ).xbee; // ToDo: I'm not convinced that using a wrapper object is desirable or necessary
-            
-        } catch(err) {
-        		node.log(util.format("Failed to get XBee on %s", this.serialConfig.serialport));
-            this.error(err);
-            return;
-        }
-        
-	      node.xbee.on("newNodeDiscovered", function(xnode) {
-  				node.log(util.format("XBee node %s discovered", xnode.remote64.hex));
 
-				  xnode.on("data", function(data) {
-    				node.log(util.format("Data from %s -> %s", xnode.remote64.hex, util.inspect(data))); 
-						node.send({ "payload": data, "source": xnode.remote64.hex }); 
-  				});
-  
-  				xnode.on("io", function(sample) {
-    				node.log(util.format("IO from %s -> %s", xnode.remote64.hex, util.inspect(sample))); 
-						node.send({ "payload": sample, "source": xnode.remote64.hex }); 
-  				});
+      } catch(err) {
+          node.log(util.format("Failed to get XBee on %s", this.serialConfig.serialport));
+          this.error(err);
+          return;
+      }
 
-				});
-            
-    } else {
-        node.error("missing serial config");
-    }
+      node.xbee.on("newNodeDiscovered", function(xnode) {
+          node.log(util.format("XBee node %s discovered", xnode.remote64.hex));
+
+          xnode.on("data", function(data) {
+            node.log(util.format("Data from %s -> %s", xnode.remote64.hex, util.inspect(data))); 
+            node.send({ "payload": data, "source": xnode.remote64.hex }); 
+        });
+
+          xnode.on("io", function(sample) {
+            node.log(util.format("IO from %s -> %s", xnode.remote64.hex, util.inspect(sample))); 
+            node.send({ "payload": sample, "source": xnode.remote64.hex }); 
+        });
+
+      });
+
+  } else {
+    node.error("missing serial config");
+}
 
 }
 
@@ -97,30 +97,30 @@ XBeeInNode.prototype.close = function() {
  * XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437.
  *
  **/
-function XBeeOutNode(n) {      
+ function XBeeOutNode(n) {      
     RED.nodes.createNode(this,n);
     var node = this;
     this.destination = n.destination;
     this.serial = n.serial;
     this.serialConfig = RED.nodes.getNode(this.serial);
-        
+
     if (node.serialConfig) {
 
         try {
-		        node.log(util.format("Get XBee on %s:%s from pool...", this.serialConfig.serialport, this.serialConfig.serialbaud));
-    
-            node.xbee = xbeePool.get(
+          node.log(util.format("Get XBee on %s:%s from pool...", this.serialConfig.serialport, this.serialConfig.serialbaud));
+
+          node.xbee = xbeePool.get(
               node.serialConfig.serialport,
-            	node.serialConfig.serialbaud
+              node.serialConfig.serialbaud
             ).xbee; // ToDo: I'm not convinced that using a wrapper object is desirable or necessary
-            
-        } catch(err) {
-        		node.log(util.format("Failed to get XBee on %s", this.serialConfig.serialport));
-            this.error(err);
-            return;
-        }
-        
-        node.on("input",function(msg) {
+
+      } catch(err) {
+          node.log(util.format("Failed to get XBee on %s", this.serialConfig.serialport));
+          this.error(err);
+          return;
+      }
+
+      node.on("input",function(msg) {
           addr = node.destination || msg.destination; // || 0013a20040aa18df  [0x00, 0x13, 0xa2, 0x00, 0x40, 0xaa, 0x18, 0xdf]
           if (addr) {
           	node.log(util.format("Send %s to %s, using %s", msg.payload, addr, util.inspect(msg)));
@@ -128,12 +128,12 @@ function XBeeOutNode(n) {
           	xnode.send(msg.payload.replace("\\n", String.fromCharCode(10)).replace("\\r", String.fromCharCode(13)));
           } else {
             node.error("missing XBee destination address");
-          }
-        });
+        }
+    });
 
-    } else {
-        node.error("missing serial config");
-    }
+  } else {
+    node.error("missing serial config");
+}
 
 }
 
@@ -144,11 +144,75 @@ XBeeOutNode.prototype.close = function() {
     util.log("XBeeOutNode closed");
 }
 
+
+/**
+ * XBeeDIOutNode -    rovides the ability to set a Digital IO pin state via a Controller XBee module connected to the computer's serial port. 
+ *
+ * The address of the XBee module to send the message to can either be set in the 
+ * node's web UI configuration or passed as a parameter in msg.destination. 
+ * The target IO Pin is specified in the Web UI or passed as a msg.dio parameter.
+ * The desired state is specified in the Web UI or passed as a msg.state parameter.
+ *
+ * XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437.
+ *
+ **/
+ function XBeeDIOutNode(n) {      
+    RED.nodes.createNode(this,n);
+    var node = this;
+    this.destination = n.destination;
+    this.dio = n.dio;
+    this.serial = n.serial;
+    this.state = n.pinstate;
+    this.serialConfig = RED.nodes.getNode(this.serial);
+
+    if (node.serialConfig) {
+
+        try {
+            node.log(util.format("Get XBee on %s:%s from pool...", this.serialConfig.serialport, this.serialConfig.serialbaud));
+
+            node.xbee = xbeePool.get(
+              node.serialConfig.serialport,
+              node.serialConfig.serialbaud
+            ).xbee; // ToDo: I'm not convinced that using a wrapper object is desirable or necessary
+            
+        } catch(err) {
+            node.log(util.format("Failed to get XBee on %s", this.serialConfig.serialport));
+            this.error(err);
+            return;
+        }
+        
+        node.on("input",function(msg) {
+          addr = node.destination || msg.destination; // || 0013a20040aa18df  [0x00, 0x13, 0xa2, 0x00, 0x40, 0xaa, 0x18, 0xdf]
+          state = node.state || msg.state; // i.e. DIGITAL_OUTPUT_LOW or DIGITAL_OUTPUT_HIGH
+          dio = node.dio || msg.dio; // e.g. DIO4
+          if (addr && state && dio) {
+            node.log(util.format("Send %s to %s, using %s", msg.payload, addr, util.inspect(msg)));
+            xnode = node.xbee.addNode(node.xbee.tools.hexStr2bArr(addr));
+            xnode.setPinMode(dio, state);
+            node.log('Setting: '+dio+' to state: '+state+' on XBee with address: '+addr);
+        } else {
+            node.error("missing XBee destination address, dio and/or state");
+        }
+    });
+
+    } else {
+        node.error("missing serial config");
+    }
+
+}
+
+XBeeDIOutNode.prototype.close = function() {
+    // Called when the node is shutdown - eg on redeploy.
+    // Allows ports to be closed, connections dropped etc.
+    // eg: this.client.disconnect();
+    util.log("XBeeDIOutNode closed");
+}
+
 // Register the nodes by name. This must be called before overriding any of the Node functions.
 console.log("Registering xbee in node");
 RED.nodes.registerType("xbee in", XBeeInNode);
-
 RED.nodes.registerType("xbee out", XBeeOutNode);
+RED.nodes.registerType("xbee dio out", XBeeDIOutNode);
 
 
 /**
@@ -157,7 +221,7 @@ RED.nodes.registerType("xbee out", XBeeOutNode);
  *
  * ToDo: There's a lot of stuff in here that can probably be pulled out once I'm sure it's not needed
  **/
-var xbeePool = function() {
+ var xbeePool = function() {
     var pool = {};
     return {
         get:function(port,baud,callback) {
@@ -165,8 +229,8 @@ var xbeePool = function() {
             if (!pool[id]) {
                 pool[id] = function() {
                     var obj = { // ToDo: I'm not convinced that using a wrapper object is desirable or necessary
-                        _emitter: new events.EventEmitter(),
-                        xbee: null,
+                    _emitter: new events.EventEmitter(),
+                    xbee: null,
                         serial: null, //ToDo : Remove
                         _closing: false,
                         tout: null,
@@ -176,26 +240,31 @@ var xbeePool = function() {
                     }
                     var setupXBee = function() {
                     	try { // ToDo : is try catch here actually necessary?
-		        						util.log(util.format("About to initialise the XBee on %s:%s...", port, baud));
-    
-						            obj.xbee = new XBee({
-            							port: port,
-            							baudrate: baud
-            						});
-            						
-        								obj.xbee.init();
-            
-						        	} catch(err) {
-						            // ToDo : Retry every 10 seconds 
-        								util.log(util.format("Failed to initialise XBee on %s", this.serialConfig.serialport));
-						            this.error(err);
-            						return;
-							        }
+                            util.log(util.format("About to initialise the XBee on %s:%s...", port, baud));
 
-											obj.xbee.on("initialized", function(params) {
-        								util.log(util.format("XBee initialised in pool -> %j", params));
-            						obj.xbee.discover();            
-											});
+                            obj.xbee = new XBee({
+                             port: port,
+                             baudrate: baud
+                         });
+
+                            obj.xbee.init();
+
+                        } catch(err) {
+						            // ToDo : Retry every 10 seconds 
+                                    util.log(util.format("Failed to initialise XBee on %s", this.serialConfig.serialport));
+                                    this.error(err);
+                                    return;
+                                }
+
+                                obj.xbee.on("initialized", function(params) {
+                                    util.log(util.format("XBee initialised in pool -> %j", params));
+                                    obj.xbee.discover();            
+                                });
+                                // Triggered whenever a node is discovered that is not already
+                                // added. / myNode will not show up here!
+                                obj.xbee.on("newNodeDiscovered", function(node) {
+                                  console.log("Node %s discovered", node.remote64.hex);
+                                });
 
 
 //                      obj.xbee.on('error', function(err) {
@@ -223,26 +292,26 @@ var xbeePool = function() {
 //                      obj.serial.on('data',function(d) {
 //                                obj._emitter.emit('data',d);
 //                      });
-                      
-                    }
-                    setupXBee();
-                    return obj;
-                }();
-            }
-            return pool[id];
-        },
-        close: function(port) {
-            if (pool[port]) {
-                if (pool[port].tout != null) clearTimeout(pool[port].tout);
-                pool[port]._closing = true;
-                try {
-                    pool[port].close(function() {
-                            util.log("[serial] serial port closed");
-                    });
-                } catch(err) {
-                };
-            }
-            delete pool[port];
-        }
+
+}
+setupXBee();
+return obj;
+}();
+}
+return pool[id];
+},
+close: function(port) {
+    if (pool[port]) {
+        if (pool[port].tout != null) clearTimeout(pool[port].tout);
+        pool[port]._closing = true;
+        try {
+            pool[port].close(function() {
+                util.log("[serial] serial port closed");
+            });
+        } catch(err) {
+        };
     }
+    delete pool[port];
+}
+}
 }();

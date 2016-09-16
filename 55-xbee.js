@@ -24,7 +24,7 @@
  var util = require("util");
  var events = require("events");
  var RED = require("../../red/red");
- var XBee = require('svd-xbee').XBee;
+ //var XBee = require('svd-xbee').XBee;
 
 /**
  * XBeeInNode - Provides an inbound connection to an XBEE network through an XBee module 
@@ -37,6 +37,7 @@
  **/
  function XBeeInNode(n) {      
     RED.nodes.createNode(this,n);
+    module.exports = function(RED){
     var node = this;
     this.serial = n.serial;
     this.serialConfig = RED.nodes.getNode(this.serial);
@@ -315,3 +316,6 @@ close: function(port) {
 }
 }
 }();
+
+
+}

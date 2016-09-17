@@ -23,7 +23,7 @@
 
  var util = require("util");
  var events = require("events");
- var RED = require("../../red/red");
+ //var RED = require("../../red/red");
  var XBee = require('svd-xbee').XBee;
 
 /**
@@ -35,6 +35,7 @@
  *	
  * XBee addresses are specified as base64 Hex strings, e.g. 0013a200408b9437.
  **/
+  module.exports = function(RED){
  function XBeeInNode(n) {      
     RED.nodes.createNode(this,n);
     var node = this;
@@ -315,3 +316,4 @@ close: function(port) {
 }
 }
 }();
+}
